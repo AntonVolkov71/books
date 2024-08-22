@@ -1,4 +1,9 @@
 const fs = require('fs')
+const logger = require("./logger");
+const loggerModule = require("./loggerModule");
+const loggerConstructor = require("./loggerConstructor");
+const loggerHowSingleton = require("./loggerHowSingleton");
+const {Logger} = require("./loggerHowSingleton")
 /*
 {
     // Замыкание
@@ -18,8 +23,8 @@ const fs = require('fs')
 
     inna()
 }
-
-
+*/
+/*
 {
     // Синхронность
     function add(a, b, callback) {
@@ -30,7 +35,8 @@ const fs = require('fs')
     add(1, 2, res => console.log('res', res))
     console.log('after',)
 }
-
+*/
+/*
 {
 
     // Асинхронность
@@ -46,6 +52,8 @@ const fs = require('fs')
     console.log('after2',)
     console.log('after3',)
 }
+*/
+/*
 {
     // Непредсказуемая функция
     console.log('',)
@@ -98,6 +106,8 @@ const fs = require('fs')
         })
     })
 }
+*/
+/*
 {
     // Синхронное использование, Прямой стиль
 
@@ -112,6 +122,8 @@ const fs = require('fs')
         }
     }
 }
+*/
+/*
 {
     // Асинхронный стиль
     const  cache = {}
@@ -131,6 +143,7 @@ const fs = require('fs')
     }
 }
 */
+/*
 {
     // Не перехваченные ошибки
     function readJSONThrows(filename, callback) {
@@ -139,18 +152,131 @@ const fs = require('fs')
                 return callback(err)
             }
 
-            let parsed;
+            // let parsed;
+            //
+            // try {
+            //     parsed = JSON.parse(data)
+            // } catch (e) {
+            //    return callback(e)
+            // }
 
-            try {
-                parsed = JSON.parse(data)
-            } catch (e) {
-               return callback(e)
-            }
-
-            callback(null, parsed)
+            callback(null, JSON.parse(data))
         })
     }
 
-
     readJSONThrows('test.txt', (err => console.log('CATCH ERROR:', err)))
+
+    // можно перехватить в цикле событий через событие 'uncaughtException'
+    process.on('uncaughtException', err=>{
+        console.log('My catch error:', err.message )
+        process.exit(1)
+    })
+}
+*/
+/*
+{
+    // Экспорт ограниченной области видимости модуля
+    const module = (() => {
+        const privateFoo = () => {
+        }
+        const privateBar = []
+
+        const exported = {
+            publicFoo: () => {
+            },
+            publicBar: () => {
+            }
+        }
+
+        return exported
+    })
+
+    console.log('module', module())
+}
+*/
+/*
+{
+    // Самодельный модуль ПЛОХОЙ вариант
+    function loadModule(filename, module, require){
+        const wrappedSrc= `(function(module, exports, require){
+        ${fs.readFileSync(filename, 'utf8')}
+        })(module, module.exports, require);`
+
+        eval(wrappedSrc)
+    }
+
+   ( function test(name){
+        console.log('name', name)
+    })('hello')
+}
+*/
+/*
+{
+    // Require самодельный Синхронный
+    function loadModule(filename, module, require){
+        const wrappedSrc= `(function(module, exports, require){
+        ${fs.readFileSync(filename, 'utf8')}
+        })(module, module.exports, require);`
+
+        eval(wrappedSrc)
+    }
+
+    const require = (moduleName)=>{
+        console.log('Require invoked for module', moduleName )
+        const id  = require.resolve(moduleName)
+
+        if(require.cache[id]){
+            return require.cache[id].exports
+        }
+
+        // метаданные модуля
+        const module = {
+            exports:{},
+            id: id
+        }
+
+        // пополнить кеш
+        require.cache[id] = module
+
+        // загрузить модуль
+        loadModule(id, module, require)
+
+        return module.exports
+    }
+    
+    require.cache={}
+    require.resolve=(moduleName)=>{
+        console.log('extracting  ID', )
+
+        return moduleName
+    }
+}
+*/
+/*
+{
+    // Именованный экспорт
+
+    logger.info('message for info')
+    logger.verbose('message for verbose')
+    console.log('', )
+    loggerModule('message for info')
+    loggerModule.verbose('message for verbose')
+}
+*/
+/*
+{
+    // Экспорт конструктора
+    const dbLogger = new loggerConstructor('DB')
+    dbLogger.info('DB message for info')
+
+    const accessLogger = new loggerConstructor('ACCESS')
+    accessLogger.verbose('ACCESS message for verbose')
+}
+*/
+{
+    // Экспорт конструктора Singleton
+    loggerHowSingleton.log('message for log')
+
+    const otherLoggerHowSingleton = new Logger('Other')
+    otherLoggerHowSingleton.log('Message for other log')
 }

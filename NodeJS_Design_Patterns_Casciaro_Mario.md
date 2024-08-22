@@ -94,5 +94,162 @@
 - в Асинхронном стиле ошибка передается через обратный вызов в  цепочке
 - Исключение перехваченное внутри асинхронного обратного вызова, будет передано циклу событий и никогда не достигнет обратного вызова
   - поэтому в асинхронном стиле используем try catch и передаем ошибке в обратный вызов, а не throw
+- можно перехватить в цикле событий через событие 'uncaughtException'
+- Желательно, а лучше Обязательно завершать приложение после перехвата событием 'uncaughtException'
+```
+    process.on('uncaughtException', err=>{
+      console.log('My catch error:', err.message )
+      process.exit(1)
+    })
+```
 
-ЗАКОНЧИЛ на 50 странице
+## Система модулей
+- в JS отсутствует пространство имен, программы, выполняемые в глобальной области видимости захламляют ее внутренними дынными и зависимостями
+- шаблон для решения проблемы "Revealing Module" - "Открытий модуль"
+
+```
+   const module = (() => {
+        const privateFoo = () => {
+        }
+        const privateBar = []
+
+        const exported = {
+            publicFoo: () => {
+            },
+            publicBar: () => {
+            }
+        }
+
+        return exported
+   })
+    
+   console.log('module', module())
+    
+```
+
+### CommonJS modules
+- аналог шаблона с открытым модулем
+- каждый модуль запускается в собственной области видимости и не загрязняет глобальную область
+- Плохой способ самодельного загрузчика модуля использовать eval как запуск исходного кода из файла
+- для определения глобальной переменной используют 'global' - Плохая практика!!
+
+- > Require в JS Синхронный, если необходимо асинхронный необходимо экспортировать неинициализированный модуль
+при этом не гарантируется его готовности к использованию!
+
+- **Загрузка модулей по версиям**
+  - сначала модуль в файлах <moduleName>.js, <moduleName>/index.js
+  - потом модуль ядра Node.js 
+  - модуль в пакетах node_modules
+
+- > Require - кеширует вызов модуля!!!!!!!!
+  > 
+
+- **Именованный экспорт** - большинство модулей в ядре Node.js использует именно так
+```
+  // logger.js
+  exports.info = (message)=>{
+    console.log('info:', message )
+  }
+
+  exports.verbose = (message)=>{
+      console.log('verbose:', message)
+  }
+  
+  // main.js
+  const logger = require("./logger");
+  
+  logger.info('message for info')
+  logger.verbose('message for verbose')
+```
+
+- **Экспорт функций**
+- расширение как использование пространства имен
+- шаблон "substack" - экспортируйте основные функциональные возможности модуля в виде единственной функции.
+Экспортированная функция используется как пространство имен для прочих вспомогательных возможностей
+```
+  // loggerModule.js
+  module.exports = (message)=>{
+    console.log('module info: ', message)
+  }
+  
+  // вспомогательная возможность
+  module.exports.verbose = (message)=>{
+      console.log('module verbose: ',message )
+  }
+  
+  // main.js
+  const loggerModule = require("./loggerModule");
+  
+  loggerModule('message for info')
+  loggerModule.verbose('message for verbose')
+  
+```
+
+- **Экспорт конструктора**
+  - можно прототипами можно class то же самое
+  - экспорт конструктора или класса является единственной точкой входа
+```
+  // loggerContructor.js
+  function Logger(name){
+      this.name = name
+  }
+  
+  Logger.prototype.log = function (message) {
+      console.log('log:', message)
+  }
+  
+  Logger.prototype.info = function (message) {
+      console.log('info:', message)
+  }
+  
+  Logger.prototype.verbose = function (message) {
+      console.log('verbose:', message)
+  }
+
+  module.exports = Logger
+  
+  // main.js
+  const loggerConstructor = require("./loggerConstructor");
+  
+  const dbLogger = new loggerConstructor('DB')
+  dbLogger.info('DB message for info')
+
+  const accessLogger = new loggerConstructor('ACCESS')
+  accessLogger.verbose('ACCESS message for verbose')
+```
+  - для вызова без new, можно использовать проверку на существование ссылки this
+  - можно использовать синтаксический сахар new.target
+```
+   // loggerContructor.js
+    function Logger(name){
+      if(!this instanceof Logger){
+        return new Logger(name)
+      }
+      
+      /* синтаксический сахар new.target
+      if(!new.target){
+        return new Logger(name)
+      }
+      */
+      
+      this.name = name
+    }
+    
+    module.exports = Logger
+  
+  // main.js
+  const dbLogger = Logger('DB');
+```
+
+- **Экспорт экземпляра как Singleton и обычный**
+```
+  module.exports = new Logger('DEFAULT')
+  module.exports.Logger = Logger
+```
+
+## Шаблон Observer - Наблюдатель
+- определяет объект (называемый субъектом), способный уведомить ряд наблюдателей (или обработчиков) об изменении своего состоянии
+- может уведомить нескольких наблюдателей
+
+### Класс EventEmitter
+- встроен в Node.js - и реализует шаблон Observer
