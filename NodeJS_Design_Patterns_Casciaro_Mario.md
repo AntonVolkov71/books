@@ -252,4 +252,138 @@
 - может уведомить нескольких наблюдателей
 
 ### Класс EventEmitter
-- встроен в Node.js - и реализует шаблон Observer
+- встроен в Node.js ('events'.EventEmitter) - и реализует шаблон Observer
+- методы
+  - on(event, listener) - регистрация обработчика для заданного типа события
+  - once(event, listener) - тоже самое что 'on', только обработчик удаляется после 1 события
+  - emit(event, [arg1],[...]) - создает событие и определяет доп аргументы для обработчика
+  - removeListener(event, listener) - удаление обработчика для заданного типа события
+- обязательно регистрировать обработчик ошибок, иначе ошибка потеряется в цикле событий
+
+```
+    // Простая реализация функции с EventEmitter
+    function findPattern(files, regex) {
+        const emitter = new EventEmitter()
+
+        files.forEach(function (file) {
+            fs.readFile(file, 'utf8', (err, content) => {
+                if (err) {
+                    return emitter.emit('error', err)
+                }
+
+                emitter.emit('fileread', file)
+
+                let match;
+
+                if (match = content.match(regex)) {
+                    match.forEach(elem => emitter.emit('found', file, elem))
+                }
+            })
+        })
+
+        return emitter
+    }
+
+    findPattern(
+        ['fileA.txt', 'fileB.json'],
+        /hello/g
+    )
+        .on('fileread', file => console.log(file, 'was read'))
+        .on('found', (file, match) => console.log('matched', match, 'in file', file))
+        .on('error', err => console.log('Error My:', err))
+```
+
+```
+    // EventEmitter реализация своего класса
+    class FindPattern extends EventEmitter {
+        constructor(regex) {
+            super();
+            this.regex = regex
+            this.files = []
+        }
+
+        addFile(file) {
+            this.files.push(file)
+            return this
+        }
+
+        find() {
+            this.files.forEach(file => {
+                fs.readFile(file, 'utf8', (err, content) => {
+                    if (err) {
+                        return this.emit('error', err)
+                    }
+
+                    this.emit('fileread', file)
+
+                    let match;
+
+                    if (match = content.match(this.regex)) {
+                        match.forEach(elem => this.emit('found', file, elem))
+                    }
+                })
+            })
+
+            return this
+        }
+    }
+
+    const findPatternObject = new FindPattern(/hello/g)
+    findPatternObject
+        .addFile('fileA.txt')
+        .addFile('fileB.json')
+        .find()
+        .on('fileread', file => console.log(file, 'was read'))
+        .on('found', (file, match) => console.log('matched', match, 'in file', file))
+        .on('error', err => console.log('Error My:', err))
+```
+
+### EventEmitter синхронные и асинхронные события
+- не мешать синхронный и асинхронные стили вместе
+- Необходимо зарегистрировать обработчики до того, как EventEmitter начнет посылать события, иначе обработчик не отработает
+
+```
+    // Синхронное события
+    class SyncEmit extends EventEmitter {
+        constructor() {
+            super();
+            this.emit('ready')
+        }
+    }
+
+    const syncEmit = new SyncEmit()
+
+    // обработчик регистрируется после отправки события
+    // НЕ ОТРАБОАТАЕТ
+    syncEmit.on('ready', ()=> console.log('Object is ready'))
+```
+
+### EventEmitter или обратные вызовы
+- эквивалентны оба подхода, разница в читаемости
+- EventEmitter более гибкий из-за типов событий, и несколько раз вызова события,
+- callback при этом можно вызвать один раз
+- EventEmitter может уведомить нескольких наблюдателей
+```
+    function helloEvents() {
+        const emitter = new EventEmitter()
+
+        setTimeout(() =>
+                emitter.emit('hello', 'hello from emitter'),
+            100
+        )
+
+        return emitter
+    }
+
+    function helloCallback(callback) {
+        setTimeout(() => callback('hello fom callback'), 99)
+    }
+```
+
+### EventEmitter вместе с обратными вызовами
+```
+    // Совместное использование EventEmitter & callback
+    // где (error, files)=> ) обратный вызов
+    glob('file/*.txt', (error, files)=> console.log('All files found', JSON.stringify(files)))
+        .on('match', match => console.log('Match found', match))
+```
