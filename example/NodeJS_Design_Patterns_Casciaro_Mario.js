@@ -46,7 +46,6 @@ const fs = require('fs')
     console.log('after2',)
     console.log('after3',)
 }
-*/
 {
     // Непредсказуемая функция
     console.log('',)
@@ -98,4 +97,60 @@ const fs = require('fs')
             console.log('Second call data', data)
         })
     })
+}
+{
+    // Синхронное использование, Прямой стиль
+
+    const cache = {}
+
+    function consistentReadSync(filename){
+        if(cache[filename]){
+            return cache[filename]
+        } else {
+            cache[filename] = fs.readFileSync(filename, 'utf8') // Синхронная
+            return cache[filename]
+        }
+    }
+}
+{
+    // Асинхронный стиль
+    const  cache = {}
+
+    function consistentReadASync(filename, callback){
+        if(cache[filename]){
+            // Добавляем асинхронность добавляем операцию в цикл события
+            // а не возвращаем сразу
+            process.nextTick(()=> callback(cache[filename]))
+        } else {
+            fs.readFile(filename, 'utf8', (err, data)=>{
+                cache[filename] = data
+
+                callback(data)
+            })
+        }
+    }
+}
+*/
+{
+    // Не перехваченные ошибки
+    function readJSONThrows(filename, callback) {
+        fs.readFile(filename, 'utf8', (err, data) => {
+            if (err) {
+                return callback(err)
+            }
+
+            let parsed;
+
+            try {
+                parsed = JSON.parse(data)
+            } catch (e) {
+               return callback(e)
+            }
+
+            callback(null, parsed)
+        })
+    }
+
+
+    readJSONThrows('test.txt', (err => console.log('CATCH ERROR:', err)))
 }
