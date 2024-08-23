@@ -400,3 +400,21 @@ asyncFoo( err => {
         });
     });
 ```
+
+### Шаблон Неограниченного Параллельного выполнения асинхронных операций
+```
+  const tasks = [/*...*/]
+  let completed = 0
+  
+  tasks.forEach(taks => {
+    task(() => {
+      if(++completed === task.length){
+        finish()
+      }  
+    }
+  }
+  
+  function finish(){
+    // all task completed
+  }
+```
