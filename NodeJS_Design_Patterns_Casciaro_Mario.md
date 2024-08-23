@@ -387,3 +387,16 @@
     glob('file/*.txt', (error, files)=> console.log('All files found', JSON.stringify(files)))
         .on('match', match => console.log('Match found', match))
 ```
+
+## Глава 3 Шаблоны асинхронного выполнения с обратными вызовами
+
+### Ад обратных вызовов
+```
+asyncFoo( err => {
+    asyncBar( err => {
+        asyncFooBar( err => {
+            //...
+          });
+        });
+    });
+```
