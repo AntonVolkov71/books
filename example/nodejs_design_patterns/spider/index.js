@@ -15,7 +15,6 @@ function spider(url, callback) {
                 if (err) {
                     callback(err)
                 } else {
-                    console.log('body', body)
                     mkdirp(path.dirname(filename), err => {
                         if (err) {
                             callback(err)
