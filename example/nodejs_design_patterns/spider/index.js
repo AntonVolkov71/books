@@ -6,43 +6,60 @@ const mkdirp = require('mkdirp')
 const path = require('path')
 const utilities = require('./utilities')
 
-function spider(url, callback) {
-    const filename = utilities.urlToFilename(url)
+function saveFile(filename, content, callback) {
+    mkdirp(path.dirname(filename), err => {
+        if (err) {
+            return callback(err)
+        }
 
-    fs.exists(filename, exists => {
-        if (!exists) {
-            request(url, (err, response, body) => {
-                if (err) {
-                    callback(err)
-                } else {
-                    mkdirp(path.dirname(filename), err => {
-                        if (err) {
-                            callback(err)
-                        } else {
-                            fs.writeFile(filename, body, err => {
-                                if (err) {
-                                    callback(err)
-                                } else {
-                                    callback(null, filename, true)
-                                }
-                            })
-                        }
-                    })
-                }
-            })
+        fs.writeFile(filename, content, callback)
+    })
+}
+
+function download(url, filename, callback) {
+    console.log('Downloading', url)
+    request(url, (err, response, body) => {
+        if (err) {
+            callback(err)
         } else {
-            callback(null, filename, false)
+            saveFile(filename, body, err => {
+                if (err) {
+                    return callback(err)
+                }
+
+                console.log('Downloaded and saved:', url)
+
+                callback(null, body)
+            })
         }
     })
 }
 
-spider(process.argv[2], (err, filename, downloaded)=>{
-    if(err){
-        console.log('My Error:',err )
-    } else if (downloaded){
-        console.log('Compeleted download', filename )
+function spider(url, callback) {
+    const filename = utilities.urlToFilename(url)
+
+    fs.exists(filename, exists => {
+        if (exists) {
+            return callback(null, filename, false)
+        } else {
+            download(url, filename, err=>{
+                if(err){
+                    return callback(err)
+                }
+
+                callback(null, filename, true)
+            })
+        }
+    })
+}
+
+spider(process.argv[2], (err, filename, downloaded) => {
+    if (err) {
+        console.log('My Error:', err)
+    } else if (downloaded) {
+        console.log('Completed download', )
     } else {
-        console.log('already downloaded', filename )
+        console.log('already downloaded', )
     }
 })
 

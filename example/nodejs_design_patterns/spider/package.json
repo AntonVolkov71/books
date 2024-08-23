@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node index.js https://proglib.io/",
+    "dev_1": "node index_continious_operation.js https://proglib.io/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^0.17.0",
     "mkdirp": "^0.5.1",
     "request": "^2.88.2",
-    "slug": "^9.1.0"
+    "slug": "^0.9.1"
   }
 }
