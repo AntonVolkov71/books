@@ -40,24 +40,39 @@ function spiderLinks(currentUrl, body, nesting, callback) {
         return process.nextTick(callback);
     }
 
-    let links = getPageLinks(currentUrl, body);  //[1]
-    function iterate(index) {
-        if(index === links.length) {
-            return callback();
+    const links = getPageLinks(currentUrl, body);  //[1]
+
+    if(links.length === 0) {
+        return process.nextTick(callback);
+    }
+
+    let completed = 0
+    let hasErrors = false
+
+    function done(err){
+        if(err){
+            hasErrors = true
+            return callback(err)
         }
 
-        spider(links[index], nesting - 1, function(err) {
-            if(err) {
-                return callback(err);
-            }
-            iterate(index + 1);
-        });
+        if(++completed === links.length && !hasErrors){
+            return callback()
+        }
     }
-    iterate(0);
+
+    links.forEach(link=>{
+        spider(link, nesting - 1, done)
+    })
 }
 
+const spiderind = new Map()
 
 function spider(url, nesting, callback) {
+    if(spiderind.has(url)){
+        return process.nextTick(callback)
+    }
+
+    spiderind.set(url)
     const filename = urlToFilename(url)
 
     fs.readFile(filename, 'utf8', (err, body) => {
@@ -79,7 +94,7 @@ function spider(url, nesting, callback) {
     })
 }
 
-spider(process.argv[2], (err, filename, downloaded) => {
+spider(process.argv[2], 1,(err, filename, downloaded) => {
     if (err) {
         console.log('My Error:', err)
     } else if (downloaded) {
