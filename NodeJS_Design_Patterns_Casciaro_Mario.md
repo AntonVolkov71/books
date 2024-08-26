@@ -418,3 +418,70 @@ asyncFoo( err => {
     // all task completed
   }
 ```
+
+### Ограничение параллельной обработки
+```
+  const tasks = [/*...*/]
+  let concurency = 2
+  let running = 0
+  let completed = 0
+  let index = 0
+  
+  function next() { //[1]
+      while(running < concurrency && index < tasks.length) { 
+        task = tasks[index++];
+        task(() => { //[2]
+        
+        if(completed === tasks.length) { 
+           return finish();
+        }
+        completed++, running--; 
+        next(); 
+      });
+      
+      running++;
+  }
+}
+next();
+
+function finish() {
+ //все задания выполнены
+}
+```
+
+### Шаблон очередь задач
+```
+class TaskQueue {
+    constructor(concurrency) {
+        this.concurrency = concurrency
+        this.running = 0
+        this.queue = []
+    }
+
+    pushTask(task){
+        this.queue.push(task)
+        this.next()
+    }
+
+    next(){
+        while(this.running < this.concurrency && this.queue.length) {
+            const task = this.queue.shift()
+
+            task(()=>{
+                this.running++
+                this.next()
+            })
+
+            this.running++
+        }
+    }
+}
+```
+
+### Библиотека Npm Async
+- series - последовательный обход серии асинхронных операций ([operations ], finishOperation)
+- eachSeries ([task]) - последовательный перебор коллекции
+- можно использовать лимит  - eachLimit, mapLimit и т.д.
+- содержит аналог TaskQueue  - добавляем задачу и обратный вызов при ее выполнении
+
+## Глава 2 Шаблоны асинхронного выполнения ES2015
