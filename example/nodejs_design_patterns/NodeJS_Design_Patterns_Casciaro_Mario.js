@@ -5,7 +5,6 @@ const loggerConstructor = require("./loggerConstructor");
 const loggerHowSingleton = require("./loggerHowSingleton");
 const {Logger} = require("./loggerHowSingleton")
 const EventEmitter = require('events').EventEmitter
-const glob = require('glob')
 /*
 {
     // Замыкание
@@ -407,10 +406,40 @@ const glob = require('glob')
     helloCallback(res => console.log(res))
 }
  */
-
+/*
 {
     // Совместное использование EventEmitter & callback
     // где (error, files)=> ) обратный вызов
     glob('file/*.txt', (error, files)=> console.log('All files found', JSON.stringify(files)))
         .on('match', match => console.log('Match found', match))
+}
+*/
+{
+  // АД последовательных вызовов
+
+    function asyncOperation(callback) {
+        process.nextTick(callback);
+    }
+
+  function task1(callback){
+      asyncOperation(()=>{
+          task2(callback)
+      })
+  }
+
+    function task2(callback){
+        asyncOperation(()=>{
+            task3(callback)
+        })
+    }
+
+    function task3(callback){
+        asyncOperation(()=>{
+            callback()
+        })
+    }
+    
+    task1(()=>{
+        console.log('task 1 2 3', )
+    })
 }
