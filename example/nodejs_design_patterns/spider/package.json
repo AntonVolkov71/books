@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node index.js https://proglib.io/",
     "dev_1": "node index_continious_operation.js https://proglib.io/",
-    "dev_2": "node index_task_queue.js https://proglib.io/"
+    "dev_2": "node index_task_queue.js https://proglib.io/",
+    "dev_3": "node spider_promise.js https://proglib.io/"
   },
   "keywords": [],
   "author": "",

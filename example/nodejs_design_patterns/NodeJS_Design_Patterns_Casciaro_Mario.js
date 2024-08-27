@@ -1,10 +1,10 @@
-const fs = require('fs')
-const logger = require("./logger");
-const loggerModule = require("./loggerModule");
-const loggerConstructor = require("./loggerConstructor");
-const loggerHowSingleton = require("./loggerHowSingleton");
-const {Logger} = require("./loggerHowSingleton")
-const EventEmitter = require('events').EventEmitter
+// const fs = require('fs')
+// const logger = require("./logger");
+// const loggerModule = require("./loggerModule");
+// const loggerConstructor = require("./loggerConstructor");
+// const loggerHowSingleton = require("./loggerHowSingleton");
+// const {Logger} = require("./loggerHowSingleton")
+// const EventEmitter = require('events').EventEmitter
 /*
 {
     // Замыкание
@@ -414,6 +414,7 @@ const EventEmitter = require('events').EventEmitter
         .on('match', match => console.log('Match found', match))
 }
 */
+/*
 {
   // АД последовательных вызовов
 
@@ -442,4 +443,22 @@ const EventEmitter = require('events').EventEmitter
     task1(()=>{
         console.log('task 1 2 3', )
     })
+}
+
+ */
+
+{
+    // Promise
+    const isErr = true
+   function asyncOperation(){
+       return new Promise((res, rej)=>{
+           if(!isErr){
+               return rej('errorororo')
+           }
+           res('success')
+       })
+   }
+
+   asyncOperation()
+       .then(res=> console.log(res), err=> console.log(err))
 }
