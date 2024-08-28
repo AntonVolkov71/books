@@ -31,24 +31,20 @@ function download(url, filename) {
 const downloadQueue = new TaskQueue(2)
 
 function spiderLinks(currentUrl, body, nesting) {
-    let promise = Promise.resolve()
-
-    if (nesting === 0) {
-        return promise
+    if(nesting === 0) {
+        return Promise.resolve()
     }
 
     const links = utilities.getPageLinks(currentUrl, body)
 
-    links.forEach(link => {
-        promise = promise.then(() => spider(link, nesting - 1))
-    })
+    links.map(link => spider(link, nesting - 1))
 
     return promise
 }
 
 const spiderind = new Map()
 
-function spider(url, nesting, ) {
+function spider(url, nesting) {
     if (spiderind.has(url)) {
         return process.nextTick()
     }
@@ -67,7 +63,7 @@ function spider(url, nesting, ) {
                     return callback(err)
                 }
 
-                spiderLinks(url, body, nesting, )
+                spiderLinks(url, body, nesting,)
             })
         }
 

@@ -489,3 +489,129 @@ class TaskQueue {
 ### Promise
 - функция обещание, выполнить асинхронную операцию в будущем
 - можно использовать throw оператор для возникновения ошибки
+
+#### Promise и обратный вызов
+```
+  function asyncDivision(dividend, divisor, cb) {
+    return new Promise((resolve, reject) => {
+        process.nextTick(() => {
+            const result = dividend / divisor
+
+            if (isNaN(result) || (!Number.isFinite(result))) {
+                const error = new Error("Invalid operands")
+
+                if (cb) {
+                    return cb(error)
+                }
+
+                return reject(error)
+            }
+
+            if (cb) {
+                return cb(null, result)
+            }
+
+            resolve(result)
+        })
+    })
+}
+
+  function cb(err, result) {
+      if (err) {
+          console.log('error', err)
+      }
+  
+      console.log('res', result)
+  }
+  
+  asyncDivision(0, 0, cb)
+  asyncDivision(2, 2)
+      .then(console.log)
+      .catch(console.log)
+
+```
+
+### Генераторы
+- они же **полусопрограммы** - semi-coroutines
+- вызов генератора fruitGenerator() просто объявление сущности, никакая операция не выполниться
+```
+  // Semi-coroutines
+    function* fruitGenerator(){
+        console.log('start') // не запуститься при const gen = fruitGenerator()
+        yield 'apple'
+        
+        console.log('after apple') // запуститья после второго next() 
+        yield 'orange'
+        return 'watermelon'
+
+    }
+
+    const gen = fruitGenerator()
+
+    console.log('gen', gen.next())
+    console.log('gen', gen.next())
+    console.log('gen', gen.next())
+    console.log('gen', gen.next()) // результат undefined
+
+    /*
+    gen { value: 'apple', done: false }
+    gen { value: 'orange', done: false }
+    gen { value: 'watermelon', done: true }
+    gen { value: undefined, done: true }
+
+     */
+```
+
+#### Генератор в роли итератора
+```
+    // Генератор в роли итератора
+    function* iteratorGenerator(arr) {
+        for (let i = 0; i < arr.length; i++) {
+            yield arr[i]
+        }
+    }
+
+    const iterator = iteratorGenerator([
+        'apple', 'orange', 'watermelon'
+    ])
+
+    let currentItem = iterator.next()
+
+    while (!currentItem.done){
+        console.log(currentItem.value )
+        
+        if(currentItem.value === 'orange'){
+            console.error('error')
+            break
+        }
+
+        currentItem = iterator.next()
+    }
+
+    console.log('before while', currentItem )
+    
+    // apple
+    // orange
+    // error
+    // before while { value: 'orange', done: false }
+
+```
+
+#### Передача значение обратно в генератоор
+```
+    // Передача значение обратно в генератор
+    function* twoWayGenerator() {
+        const what = yield null
+
+        console.log('Hello', what.first)
+        console.log('Hello', what.second)
+    }
+
+    const gen = twoWayGenerator()
+    gen.next() // захватили переменную what
+    // gen.throw(new Error('текст ошибки'))
+    gen.next({first: 'Anton', second: 'Volkov'}) // далее аргументом значение
+    
+    // Hello Anton
+    // Hello Volkov
+```

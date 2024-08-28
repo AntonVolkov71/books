@@ -446,7 +446,7 @@
 }
 
  */
-
+/*
 {
     // Promise
     const isErr = true
@@ -461,4 +461,82 @@
 
    asyncOperation()
        .then(res=> console.log(res), err=> console.log(err))
+}
+
+ */
+
+/*
+{
+    // Semi-coroutines
+    function* fruitGenerator(){
+        console.log('before yield', )
+        yield 'apple'
+
+        console.log('after apple', )
+        yield 'orange'
+        return 'watermelon'
+
+    }
+
+    const gen = fruitGenerator()
+
+    console.log('gen', gen.next())
+    console.log('gen', gen.next())
+    console.log('gen', gen.next())
+    console.log('gen', gen.next())
+
+
+
+   // gen { value: 'apple', done: false }
+   // gen { value: 'orange', done: false }
+   // gen { value: 'watermelon', done: true }
+   // gen { value: 'undefined', done: true }
+}
+*/
+/*
+{
+    // Генератор в роли итератора
+    function* iteratorGenerator(arr) {
+        for (let i = 0; i < arr.length; i++) {
+            yield arr[i]
+        }
+    }
+
+    const iterator = iteratorGenerator([
+        'apple', 'orange', 'watermelon'
+    ])
+
+    let currentItem = iterator.next()
+
+    while (!currentItem.done){
+        console.log(currentItem.value )
+
+        if(currentItem.value === 'orange'){
+            console.error('error')
+            break
+        }
+
+        currentItem = iterator.next()
+    }
+
+    console.log('before while', currentItem )
+}
+*/
+
+{
+    // Передача значение обратно в генератор
+    function* twoWayGenerator() {
+        const what = yield null
+
+        console.log('Hello', what.first)
+        console.log('Hello', what.second)
+    }
+
+    const gen = twoWayGenerator()
+    gen.next() // захватили переменную what
+    // gen.throw(new Error('текст ошибки'))
+    gen.next({first: 'Anton', second: 'Volkov'}) // далее аргументом значение
+
+    // Hello Anton
+    // Hello Volkov
 }
