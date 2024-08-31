@@ -1,6 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 const zlib = require('zlib');
+const http = require('http');
+const crypto = require('crypto');
 
 // const logger = require("./logger");
 // const loggerModule = require("./loggerModule");
@@ -575,16 +577,63 @@ const zlib = require('zlib');
 }
 
  */
-
+/*
 {
     // Сжатие при использовании буферизующего API
-    const file = process.argv[2]
+    const file = 'C:\\Users\\volko\\Documents\\приложения с git\\books\\files\\Шаблоны проектирования Node.js. Каскиаро, Маммино.pdf'
 
+    console.log('before zip', )
     fs.readFile(file, (err, buffer)=>{
+        console.log('readfile success', )
         zlib.gzip(buffer, (err, buffer)=>{
             fs.writeFile(file +'.gz', buffer, err=>{
                 console.log('File successfully compressed', )
             })
         })
     })
+
+    console.log('after zip', )
+}
+
+ */
+/*
+{
+    // Сжатие с потоком данных
+    const file = 'test.txt'
+    fs.createReadStream(file)
+        .pipe(zlib.createGzip())
+        .pipe(fs.createWriteStream(file + '.gz'))
+        .on('finish', ()=> console.log('File successfully compressed'))
+}
+
+ */
+
+{
+    // Клиент отправки файла на сервер используя потоки
+    const file = 'test.txt'
+    const server = 'localhost'
+
+    const options = {
+        hostname: server,
+        port: 3000,
+        path: '/',
+        method: 'PUT',
+        headers: {
+            filename: path.basename(file),
+            'Content-Type': 'application/octet-stream',
+            'Content-Encoding': 'gzip'
+        }
+    }
+
+    const req = http.request(options, res => {
+        console.log('Server response', res.statusCode)
+    })
+
+    fs.createReadStream(file)
+        .pipe(zlib.createGzip(file))
+        .pipe(crypto.createCipheriv('aes192', 'a_shared_secret'))
+        .pipe(req)
+        .on('finish', () => {
+            console.log('File successfully sent',)
+        })
 }
