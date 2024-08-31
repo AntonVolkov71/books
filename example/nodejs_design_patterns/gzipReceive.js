@@ -7,8 +7,8 @@ const server = http.createServer((req, res) => {
     console.log('File request receives', filename)
 
     req
+        .pipe(crypto.createDecipher('aes192', 'a_shared_secret'))
         .pipe(zlib.createGunzip())
-        .pipe(crypto.createDecipheriv('aes192', 'a_shared_secret'))
         .pipe(fs.createWriteStream('newfile.txt'))
         .on('finish', () => {
             res.writeHead(201, {'Content-Type': 'text/plain'})
