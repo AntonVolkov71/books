@@ -3,8 +3,9 @@ const path = require('path')
 const zlib = require('zlib');
 const http = require('http');
 const crypto = require('crypto')
+const Chance = require('chance')
 const RandomStream = require('./data_streams/ReadStream')
-
+const ToFileStream = require('./data_streams/stream_for_writable')
 
 // const logger = require("./logger");
 // const loggerModule = require("./loggerModule");
@@ -661,5 +662,14 @@ const RandomStream = require('./data_streams/ReadStream')
  */
 
 {
-    //
+    // Реализация потоков для записи
+
+    const tfs = new ToFileStream()
+
+    tfs.write({path: './fileA.txt', content: 'HELLOO'})
+    tfs.write({path: './fileB.txt', content: 'HELLOO2'})
+
+    tfs.end(() => console.log('lfinshed'))
 }
+
+
