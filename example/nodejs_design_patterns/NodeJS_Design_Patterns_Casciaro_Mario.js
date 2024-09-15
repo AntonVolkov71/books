@@ -2,7 +2,10 @@ const fs = require('fs')
 const path = require('path')
 const zlib = require('zlib');
 const http = require('http');
-const crypto = require('crypto');
+const crypto = require('crypto')
+const Chance = require('chance')
+const RandomStream = require('./data_streams/ReadStream')
+const ToFileStream = require('./data_streams/stream_for_writable')
 
 // const logger = require("./logger");
 // const loggerModule = require("./loggerModule");
@@ -608,6 +611,7 @@ const crypto = require('crypto');
 
  */
 
+/*
 {
     // Клиент отправки файла на сервер используя потоки
     const file = 'test.txt'
@@ -631,9 +635,41 @@ const crypto = require('crypto');
 
     fs.createReadStream(file)
         .pipe(zlib.createGzip(file))
-        .pipe(crypto.createCipheriv('aes192', 'a_shared_secret'))
+        .pipe(crypto.createCipher('aes192', 'a_shared_secret'))
         .pipe(req)
         .on('finish', () => {
             console.log('File successfully sent',)
         })
 }
+
+ */
+
+/*
+{
+    // Реализация потока чтения
+    const randomStream = new RandomStream()
+
+    randomStream
+        .on('readable', () => {
+            let chunk
+
+            while ((chunk = randomStream.read()) !== null) {
+                console.log('Chunk received', chunk.toString())
+            }
+        })
+}
+
+ */
+
+{
+    // Реализация потоков для записи
+
+    const tfs = new ToFileStream()
+
+    tfs.write({path: './fileA.txt', content: 'HELLOO'})
+    tfs.write({path: './fileB.txt', content: 'HELLOO2'})
+
+    tfs.end(() => console.log('lfinshed'))
+}
+
+

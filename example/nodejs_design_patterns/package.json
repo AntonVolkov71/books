@@ -1,0 +1,15 @@
+{
+  "name": "nodejs_design_patterns",
+  "version": "1.0.0",
+  "main": "NodeJS_Design_Patterns_Casciaro_Mario.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chance": "^1.0.0"
+  }
+}
